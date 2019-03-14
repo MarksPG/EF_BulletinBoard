@@ -4,14 +4,16 @@ using BulletinBoard;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BulletinBoard.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190314204855_ChangeClasses")]
+    partial class ChangeClasses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,20 +42,20 @@ namespace BulletinBoard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("CategoryID");
+                    b.Property<int?>("CategoryID");
 
                     b.Property<string>("Content")
                         .IsRequired();
 
                     b.Property<DateTime>("Date");
 
-                    b.Property<int?>("Like");
+                    b.Property<int>("Like");
 
                     b.Property<string>("Topic")
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<int>("UserID");
+                    b.Property<int?>("UserID");
 
                     b.HasKey("ID");
 
@@ -85,13 +87,11 @@ namespace BulletinBoard.Migrations
                 {
                     b.HasOne("BulletinBoard.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("CategoryID");
 
                     b.HasOne("BulletinBoard.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("UserID");
                 });
 #pragma warning restore 612, 618
         }

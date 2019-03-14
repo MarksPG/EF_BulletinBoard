@@ -134,6 +134,14 @@
     <Compile Include="Migrations\20190314152537_AddedRelationPostAndCategory.designer.cs">
       <DependentUpon>20190314152537_AddedRelationPostAndCategory.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20190314204855_ChangeClasses.cs" />
+    <Compile Include="Migrations\20190314204855_ChangeClasses.designer.cs">
+      <DependentUpon>20190314204855_ChangeClasses.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20190314210130_AppliedAnnotations.cs" />
+    <Compile Include="Migrations\20190314210130_AppliedAnnotations.designer.cs">
+      <DependentUpon>20190314210130_AppliedAnnotations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\AppDbContextModelSnapshot.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -41,13 +41,22 @@ namespace BulletinBoard
         [MaxLength(20)]
         public string Name { get; set; }
     }
+
     public class Post 
     {
         [Key]
         public int ID { get; set; }
         [Required]
-        public string Text { get; set; }
+        [MaxLength(50)]
+        public string Topic { get; set; }
+        [Required]
+        public string Content { get; set; }
+        [Required]
         public Category Category { get; set; }
+        [Required]
+        public User User { get; set; }
+        public int? Like { get; set; }
+        public DateTime Date { get; set; }
     }
 
     public class Program
@@ -58,61 +67,6 @@ namespace BulletinBoard
         static void Main(string[] args)
         {
             StartMenu();
-        }
-
-        private static void MainMenu()
-        {
-            using (database = new AppDbContext())
-            {
-                while (true)
-                {
-                    Console.Clear();
-                    Console.WriteLine($"You are now logged in as {loggedInUser.Username}");
-                    Console.WriteLine();
-                    string option = ShowMenu("What do you want to do?", new[] {
-                        "Most Recent Posts",
-                        "Most Popular Posts",
-                        "Posts by Category",
-                        "Search",
-                        "Create a Post",
-                        "Quit"
-                    });
-
-                    if (option == "Most recent Posts") MostRecentPosts();
-                    if (option == "Most Popular Posts") MostPopularPosts();
-                    if (option == "Posts by Category") PostsByCategory();
-                    if (option == "Search") Search();
-                    if (option == "Create a Post") CreateAPost();
-                    else Environment.Exit(0);
-
-                    Console.WriteLine();
-                }
-            }
-        }
-
-        private static void CreateAPost()
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void Search()
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void PostsByCategory()
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void MostPopularPosts()
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void MostRecentPosts()
-        {
-            throw new NotImplementedException();
         }
 
         private static void StartMenu()
@@ -166,7 +120,7 @@ namespace BulletinBoard
                 }
                 else
                 {
-                    Console.WriteLine("User doesn't exist");
+                    Console.WriteLine("User doesn't exist. Enter an existing username or create an account.");
                 }
             }
             catch
@@ -174,6 +128,61 @@ namespace BulletinBoard
                 // User doesn't exist
             }
 
+        }
+
+        private static void MainMenu()
+        {
+            using (database = new AppDbContext())
+            {
+                while (true)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"You are now logged in as {loggedInUser.Username}");
+                    Console.WriteLine();
+                    string option = ShowMenu("What do you want to do?", new[] {
+                        "Most Recent Posts",
+                        "Most Popular Posts",
+                        "Posts by Category",
+                        "Search",
+                        "Create a Post",
+                        "Quit"
+                    });
+
+                    if (option == "Most recent Posts") MostRecentPosts();
+                    if (option == "Most Popular Posts") MostPopularPosts();
+                    if (option == "Posts by Category") PostsByCategory();
+                    if (option == "Search") Search();
+                    if (option == "Create a Post") CreateAPost();
+                    else Environment.Exit(0);
+
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        private static void MostRecentPosts()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void MostPopularPosts()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void PostsByCategory()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void Search()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void CreateAPost()
+        {
+            throw new NotImplementedException();
         }
 
         private static void CreateAccount()
