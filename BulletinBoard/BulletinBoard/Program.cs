@@ -101,33 +101,27 @@ namespace BulletinBoard
 
             User[] users = database.User.ToArray();
 
-            try
+            
+            if (users.Select(u => u.Username).Contains(user.Username))
             {
-                if (users.Select(u => u.Username).Contains(user.Username))
-                {
-                    User selectedUser = users.First(u => u.Username == user.Username);
-                    user.Password = ReadString("Password:");
+                User selectedUser = users.First(u => u.Username == user.Username);
+                user.Password = ReadString("Password:");
 
-                    if (user.Password == selectedUser.Password)
-                    {
-                        loggedInUser = selectedUser;
-                        MainMenu();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Wrong password");
-                    }
+                if (user.Password == selectedUser.Password)
+                {
+                    loggedInUser = selectedUser;
+                    MainMenu();
                 }
                 else
                 {
-                    Console.WriteLine("User doesn't exist. Enter an existing username or create an account.");
+                    Console.WriteLine("Wrong password");
                 }
             }
-            catch
+            else
             {
-                // User doesn't exist
+                Console.WriteLine("User doesn't exist. Enter an existing username or create an account.");
             }
-
+            
         }
 
         private static void MainMenu()
@@ -182,7 +176,19 @@ namespace BulletinBoard
 
         private static void CreateAPost()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            WriteUnderlined("Create new post");
+            Console.WriteLine();
+            string[] categories = database.Category.Select(c => c.Name).ToArray();
+            string selectedCategory = ShowMenu("Select category", categories);
+            Post post = new Post();
+            //Behöver kollas. Det är ingen referens till objektet. ShowMenu behöver returnera ett objekt.
+            post.Category.Name = selectedCategory;
+            Console.WriteLine();
+            post.Topic = ReadString("Enter a topic for your post");
+            post.Content = ReadString("Write your post message");
+            post.User = loggedInUser;
+            post.Date = DateTime.Now;
         }
 
         private static void CreateAccount()
