@@ -3,43 +3,206 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BulletinBoard
 {
     public class AppDbContext : DbContext
     {
-        //public DbSet<Category> Category { get; set; }
-        //public DbSet<Product> Product { get; set; }
+        public DbSet<User> User { get; set; }
+        public DbSet<Post> Post { get; set; }
+        public DbSet<Category> Category { get; set; }
         //public DbSet<OrderItem> OrderItem { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseSqlServer(@"Data Source=(local)\SQLEXPRESS;Initial Catalog=*************;Integrated Security=True");
+            options.UseSqlServer(@"Data Source=den1.mssql8.gear.host;Initial Catalog=efbulletinboard;Persist Security Info=True;User ID=efbulletinboard;Password=Qe9RK-mq!Ty6");
         }
+    }
+
+    public class User
+    {
+        [Key]
+        public int ID { get; set; }
+        [Required]
+        public string Username { get; set; }
+        [Required]
+        public string Password { get; set; }
+    }
+
+    public class Category
+    {
+        [Key]
+        public int ID { get; set; }
+        [Required]
+        [MaxLength(20)]
+        public string Name { get; set; }
+    }
+    public class Post 
+    {
+        [Key]
+        public int ID { get; set; }
+        [Required]
+        public string Text { get; set; }
+        public Category Category { get; set; }
     }
 
     public class Program
     {
         static AppDbContext database;
+        static User loggedInUser;
 
         static void Main(string[] args)
+        {
+            StartMenu();
+        }
+
+        private static void MainMenu()
+        {
+            using (database = new AppDbContext())
+            {
+                while (true)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"You are now logged in as {loggedInUser.Username}");
+                    Console.WriteLine();
+                    string option = ShowMenu("What do you want to do?", new[] {
+                        "Most Recent Posts",
+                        "Most Popular Posts",
+                        "Posts by Category",
+                        "Search",
+                        "Create a Post",
+                        "Quit"
+                    });
+
+                    if (option == "Most recent Posts") MostRecentPosts();
+                    if (option == "Most Popular Posts") MostPopularPosts();
+                    if (option == "Posts by Category") PostsByCategory();
+                    if (option == "Search") Search();
+                    if (option == "Create a Post") CreateAPost();
+                    else Environment.Exit(0);
+
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        private static void CreateAPost()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void Search()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void PostsByCategory()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void MostPopularPosts()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void MostRecentPosts()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void StartMenu()
         {
             using (database = new AppDbContext())
             {
                 while (true)
                 {
                     string option = ShowMenu("What do you want to do?", new[] {
-                        "Start shopping",
+                        "Sign in",
+                        "Create account",
                         "Quit"
                     });
 
-                    if (option == "Start shopping") ListCategories();
+                    if (option == "Sign in") SignIn();
+                    else if (option == "Create account") CreateAccount();
                     else Environment.Exit(0);
 
                     Console.WriteLine();
                 }
+            }
+        }
+
+        private static void SignIn()
+        {
+            WriteUnderlined("Enter username and password to login");
+
+            User user = new User()
+            {
+                Username = ReadString("Enter your username")
+            };
+
+            User[] users = database.User.ToArray();
+
+            try
+            {
+                if (users.Select(u => u.Username).Contains(user.Username))
+                {
+                    User selectedUser = users.First(u => u.Username == user.Username);
+                    user.Password = ReadString("Password:");
+
+                    if (user.Password == selectedUser.Password)
+                    {
+                        loggedInUser = selectedUser;
+                        MainMenu();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Wrong password");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("User doesn't exist");
+                }
+            }
+            catch
+            {
+                // User doesn't exist
+            }
+
+        }
+
+        private static void CreateAccount()
+        {
+            User user = new User();
+            {
+                user.Username = ReadString("Username:");
+                user.Password = ReadString("Password:");
+            }
+
+            database.Add(user);
+            database.SaveChanges();
+
+            loggedInUser = user;
+            MainMenu();
+        }
+
+        public bool UserExists(string userName)
+        {
+            string[] users = database.User.Select(u => u.Username).ToArray();
+
+            try
+            {
+                users.Contains(userName);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
