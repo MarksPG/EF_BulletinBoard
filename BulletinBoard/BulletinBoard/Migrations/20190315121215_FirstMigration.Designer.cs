@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BulletinBoard.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20190314204855_ChangeClasses")]
-    partial class ChangeClasses
+    [Migration("20190315121215_FirstMigration")]
+    partial class FirstMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -42,20 +42,20 @@ namespace BulletinBoard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("CategoryID");
+                    b.Property<int>("CategoryID");
 
                     b.Property<string>("Content")
                         .IsRequired();
 
                     b.Property<DateTime>("Date");
 
-                    b.Property<int>("Like");
+                    b.Property<int?>("Like");
 
                     b.Property<string>("Topic")
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<int?>("UserID");
+                    b.Property<int>("UserID");
 
                     b.HasKey("ID");
 
@@ -87,11 +87,13 @@ namespace BulletinBoard.Migrations
                 {
                     b.HasOne("BulletinBoard.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryID");
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("BulletinBoard.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserID");
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }
