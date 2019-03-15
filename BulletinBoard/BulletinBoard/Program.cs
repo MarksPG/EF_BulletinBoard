@@ -187,7 +187,7 @@ namespace BulletinBoard
             Console.WriteLine();
             post.Topic = ReadString("Enter a topic for your post");
             post.Content = ReadString("Write your post message");
-            post.User = loggedInUser;
+            post.User = database.User.First(u => u.ID == loggedInUser.ID);
             post.Date = DateTime.Now;
 
             database.Add(post);
