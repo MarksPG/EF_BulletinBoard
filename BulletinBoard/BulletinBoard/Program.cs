@@ -31,6 +31,11 @@ namespace BulletinBoard
         public string Username { get; set; }
         [Required]
         public string Password { get; set; }
+
+        public override string ToString()
+        {
+            return Username;
+        }
     }
 
     public class Category
@@ -40,6 +45,11 @@ namespace BulletinBoard
         [Required]
         [MaxLength(20)]
         public string Name { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 
     public class Post 
@@ -105,7 +115,7 @@ namespace BulletinBoard
             if (users.Select(u => u.Username).Contains(user.Username))
             {
                 User selectedUser = users.First(u => u.Username == user.Username);
-                user.Password = ReadString("Password:");
+                user.Password = ReadString("Enter password");
 
                 if (user.Password == selectedUser.Password)
                 {
@@ -142,7 +152,7 @@ namespace BulletinBoard
                         "Quit"
                     });
 
-                    if (option == "Most recent Posts") MostRecentPosts();
+                    if (option == "Most Recent Posts") MostRecentPosts();
                     if (option == "Most Popular Posts") MostPopularPosts();
                     if (option == "Posts by Category") PostsByCategory();
                     if (option == "Search") Search();
@@ -156,7 +166,21 @@ namespace BulletinBoard
 
         private static void MostRecentPosts()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            Console.WriteLine("Hej!");
+            Post[] allPosts = database.Post.Include(p => p.Category).Include(p => p.User).ToArray();
+            var selectedPost = (Post)ShowMenu2("Most recent posts", allPosts);
+
+
+            Console.WriteLine();
+
+            WriteUnderlined($"{selectedPost.Topic}");
+            Console.WriteLine();
+            Console.WriteLine($"{selectedPost.Content}");
+            Console.WriteLine();
+            Console.WriteLine($"Posted by {selectedPost.User.Username} in {selectedPost.Category.Name} at {selectedPost.Date.Hour}:{selectedPost.Date.Minute}");
+            Console.ReadKey();
+
         }
 
         private static void MostPopularPosts()
@@ -166,7 +190,20 @@ namespace BulletinBoard
 
         private static void PostsByCategory()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            
+            Console.WriteLine();
+            var categories = database.Category.ToArray();
+            var selectedCategory = (Category)ShowMenu2("Posts by category", categories);
+
+            WriteUnderlined($"Posts by category + { selectedCategory.Name }");
+            var posts = database.Post.Include(p => p.Category).Where(p => p.Category.Name == selectedCategory.Name).ToArray();
+            foreach(Post post in posts)
+            {
+                Console.WriteLine($"- {post.Topic}");
+            }
+            Console.WriteLine();
+            Console.ReadKey();
         }
 
         private static void Search()
@@ -274,7 +311,7 @@ namespace BulletinBoard
             return options[selected];
         }
 
-        static Category ShowMenu2(string prompt, Category[] options)
+        static object ShowMenu2(string prompt, object[] options)
         {
             Console.WriteLine(prompt);
 
@@ -302,7 +339,7 @@ namespace BulletinBoard
                         Console.BackgroundColor = ConsoleColor.Blue;
                         Console.ForegroundColor = ConsoleColor.White;
                     }
-                    Console.WriteLine("- " + option.Name);
+                    Console.WriteLine("- " + option.ToString());
                     Console.ResetColor();
                 }
 
