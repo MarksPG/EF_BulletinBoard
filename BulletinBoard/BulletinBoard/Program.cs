@@ -156,18 +156,51 @@ namespace BulletinBoard
                         "Posts by Category",
                         "Search",
                         "Create a Post",
+                        "Delete a Post",
                         "Quit"
                     });
 
                     if (option == "Most Recent Posts") MostRecentPosts();
-                    if (option == "Most Popular Posts") MostPopularPosts();
-                    if (option == "Posts by Category") PostsByCategory();
-                    if (option == "Search") Search();
-                    if (option == "Create a Post") CreateAPost();
+                    else if (option == "Most Popular Posts") MostPopularPosts();
+                    else if (option == "Posts by Category") PostsByCategory();
+                    else if (option == "Search") Search();
+                    else if (option == "Create a Post") CreateAPost();
+                    else if (option == "Delete a Post") DeleteAPost();
                     else Environment.Exit(0);
 
                     Console.WriteLine();
                 }
+            }
+        }
+
+        private static void DeleteAPost()
+        {
+            Console.Clear();
+            var posts = database.Post.Include(p => p.User).Where(p => p.User.ID == loggedInUser.ID).ToArray();
+            var postToDelete = (Post)ShowMenu2("Select which post to delete", posts);
+
+            Console.WriteLine();
+            WriteUnderlined("You have chosen to delete this post:");
+            Console.WriteLine($"{postToDelete.Topic}");
+            Console.WriteLine($"{postToDelete.Content}");
+            Console.WriteLine($"Created by {postToDelete.User.Username} on {postToDelete.Date.Date}");
+            Console.WriteLine("Are you sure you want to delete this post?(Y/N)");
+            string userOption = Console.ReadLine().ToUpper();
+            if (userOption == "Y")
+            {
+                database.Remove(postToDelete);
+                database.SaveChanges();
+                MainMenu();
+            }
+            else if (userOption == "N")
+            {
+                MainMenu();
+            }
+            else
+            {
+                Console.WriteLine("Come on, this was supposed to be a simple choice!");
+                Console.ReadKey();
+                MainMenu();
             }
         }
 
@@ -207,6 +240,7 @@ namespace BulletinBoard
             post.Like++;
             database.Update(post);
             database.SaveChanges();
+            StartMenu();
 
         }
 
