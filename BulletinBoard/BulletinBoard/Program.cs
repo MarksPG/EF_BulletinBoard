@@ -67,6 +67,13 @@ namespace BulletinBoard
         public User User { get; set; }
         public int? Like { get; set; }
         public DateTime Date { get; set; }
+
+        public override string ToString()
+        {
+            return Topic;
+
+        }
+
     }
 
     public class Program
@@ -179,7 +186,27 @@ namespace BulletinBoard
             Console.WriteLine($"{selectedPost.Content}");
             Console.WriteLine();
             Console.WriteLine($"Posted by {selectedPost.User.Username} in {selectedPost.Category.Name} at {selectedPost.Date.Hour}:{selectedPost.Date.Minute}");
-            Console.ReadKey();
+            Console.WriteLine();
+            string option = ShowMenu("What do you want to do?", new[] {
+                        "Like this post",
+                        "Return to Main Menu"
+                    });
+
+            if (option == "Like this post") LikeAPost(selectedPost);
+            else if (option == "Return to Main Menu") MainMenu();
+            else Environment.Exit(0);
+
+
+        }
+
+        private static void LikeAPost(Post selectedPost)
+        {
+
+            Post post = new Post();
+            post = selectedPost;
+            post.Like++;
+            database.Update(post);
+            database.SaveChanges();
 
         }
 
@@ -226,6 +253,7 @@ namespace BulletinBoard
             post.Content = ReadString("Write your post message");
             post.User = database.User.First(u => u.ID == loggedInUser.ID);
             post.Date = DateTime.Now;
+            post.Like = 0;
 
             database.Add(post);
             database.SaveChanges();
@@ -245,7 +273,7 @@ namespace BulletinBoard
             loggedInUser = user;
             MainMenu();
         }
-
+         
         public bool UserExists(string userName)
         {
             string[] users = database.User.Select(u => u.Username).ToArray();
