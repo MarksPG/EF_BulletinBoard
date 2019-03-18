@@ -15,14 +15,19 @@ namespace BulletinBoard
         public DbSet<User> User { get; set; }
         public DbSet<Post> Post { get; set; }
         public DbSet<Category> Category { get; set; }
-        //public DbSet<OrderItem> OrderItem { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseSqlServer(@"Data Source=den1.mssql8.gear.host;Initial Catalog=efbulletinboard;Persist Security Info=True;User ID=efbulletinboard;Password=Qe9RK-mq!Ty6");
         }
-    }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PostCategory>()
+                .HasKey(t => new { t.PostID, t.CategoryID });
+        }
+    }
     public class User
     {
         [Key]
@@ -46,13 +51,15 @@ namespace BulletinBoard
         [MaxLength(20)]
         public string Name { get; set; }
 
+        public List<PostCategory> PostCategory { get; set; }
+
         public override string ToString()
         {
             return Name;
         }
     }
 
-    public class Post 
+    public class Post
     {
         [Key]
         public int ID { get; set; }
@@ -62,11 +69,11 @@ namespace BulletinBoard
         [Required]
         public string Content { get; set; }
         [Required]
-        public Category Category { get; set; }
-        [Required]
         public User User { get; set; }
         public int? Like { get; set; }
         public DateTime Date { get; set; }
+
+        public List<PostCategory> PostCategory { get; set; }
 
         public override string ToString()
         {
@@ -74,6 +81,15 @@ namespace BulletinBoard
 
         }
 
+    }
+
+    public class PostCategory
+    {
+        public int PostID { get; set; }
+        public Post Post { get; set; }
+
+        public int CategoryID { get; set; }
+        public Category Category { get; set; }
     }
 
     public class Program
@@ -118,7 +134,7 @@ namespace BulletinBoard
 
             User[] users = database.User.ToArray();
 
-            
+
             if (users.Select(u => u.Username).Contains(user.Username))
             {
                 User selectedUser = users.First(u => u.Username == user.Username);
@@ -138,7 +154,7 @@ namespace BulletinBoard
             {
                 Console.WriteLine("User doesn't exist. Enter an existing username or create an account.");
             }
-            
+
         }
 
         private static void MainMenu()
@@ -165,7 +181,7 @@ namespace BulletinBoard
 
                     if (option == "Most Recent Posts") MostRecentPosts();
                     else if (option == "Most Popular Posts") MostPopularPosts();
-                    else if (option == "Posts by Category") PostsByCategory();
+                    //else if (option == "Posts by Category") PostsByCategory();
                     else if (option == "Sort Posts by Date") SortPostsByDate();
                     else if (option == "Sort Posts By Popularity") SortPostsByPopularity();
                     else if (option == "Search for text in all posts") SearchForText();
@@ -241,17 +257,25 @@ namespace BulletinBoard
         {
             Console.Clear();
             Console.WriteLine("Hej!");
-            Post[] allPosts = database.Post.Include(p => p.Category).Include(p => p.User).ToArray();
+            Post[] allPosts = database.Post.Include(p => p.PostCategory).ThenInclude(pc => pc.Category).Include(p => p.User).ToArray();
             var selectedPost = (Post)ShowMenu2("Most recent posts", allPosts);
 
 
             Console.WriteLine();
+            foreach (var item in selectedPost.PostCategory)
+            {
+                Console.WriteLine(item.Category.Name);
+            }
+            Console.ReadKey();
+
+            //selectedPost.PostCategory.ForEach(pc => Console.Write(pc.Category.Name));
+            
 
             WriteUnderlined($"{selectedPost.Topic}");
             Console.WriteLine();
             Console.WriteLine($"{selectedPost.Content}");
             Console.WriteLine();
-            Console.WriteLine($"Posted by {selectedPost.User.Username} in {selectedPost.Category.Name} at {selectedPost.Date.Hour}:{selectedPost.Date.Minute}");
+            Console.WriteLine($"Posted by {selectedPost.User.Username} in { ReturnCategories(selectedPost) } at {selectedPost.Date.Hour}:{selectedPost.Date.Minute}");
             Console.WriteLine();
             string option = ShowMenu("What do you want to do?", new[] {
                         "Like this post",
@@ -265,13 +289,20 @@ namespace BulletinBoard
 
         }
 
+        private static string ReturnCategories(Post post)
+        {
+            string category = "";
+            foreach (var p in post.PostCategory)
+            {
+                category = category + p.Category.Name + ", ";
+            }
+            return category.TrimEnd(',',' ');
+        }
+
         private static void LikeAPost(Post selectedPost)
         {
-
-            Post post = new Post();
-            post = selectedPost;
-            post.Like++;
-            database.Update(post);
+            selectedPost.Like++;
+            database.Update(selectedPost);
             database.SaveChanges();
             StartMenu();
 
@@ -282,23 +313,23 @@ namespace BulletinBoard
             throw new NotImplementedException();
         }
 
-        private static void PostsByCategory()
-        {
-            Console.Clear();
-            
-            Console.WriteLine();
-            var categories = database.Category.ToArray();
-            var selectedCategory = (Category)ShowMenu2("Posts by category", categories);
+        //private static void PostsByCategory()
+        //{
+        //    Console.Clear();
 
-            WriteUnderlined($"Posts by category + { selectedCategory.Name }");
-            var posts = database.Post.Include(p => p.Category).Where(p => p.Category.Name == selectedCategory.Name).ToArray();
-            foreach(Post post in posts)
-            {
-                Console.WriteLine($"- {post.Topic}");
-            }
-            Console.WriteLine();
-            Console.ReadKey();
-        }
+        //    Console.WriteLine();
+        //    var categories = database.Category.ToArray();
+        //    var selectedCategory = (Category)ShowMenu2("Posts by category", categories);
+
+        //    WriteUnderlined($"Posts by category + { selectedCategory.Name }");
+        //    var posts = database.Post.Include(p => p.Category).Where(p => p.Category.Name == selectedCategory.Name).ToArray();
+        //    foreach (Post post in posts)
+        //    {
+        //        Console.WriteLine($"- {post.Topic}");
+        //    }
+        //    Console.WriteLine();
+        //    Console.ReadKey();
+        //}
 
         private static void SearchForText()
         {
@@ -306,7 +337,7 @@ namespace BulletinBoard
             Console.WriteLine();
             string userInput = ReadString("Enter a text to search for");
 
-            string[] posts = database.Post.Where(p => p.Content.Contains(userInput)).Select(p => $"{p.Topic} + {p.Content}").ToArray();
+            string[] posts = database.Post.Where(p => p.Content.Contains(userInput)).Select(p => $"{p.Topic}   -{p.Content}").ToArray();
 
             WriteUnderlined("The following posts contain the search string you entered:");
             foreach (string post in posts)
@@ -322,11 +353,15 @@ namespace BulletinBoard
             Console.Clear();
             WriteUnderlined("Create new post");
             Console.WriteLine();
-            Category[] categories = database.Category.ToArray();
-            object selectedCategory = ShowMenu2("Select category", categories);
+            string[] categories = database.Category.Select(c => c.Name).ToArray();
+            string[] selectedCategories = ShowMultiMenu("Select category", categories);
             Post post = new Post();
-            //Behöver kollas. Det är ingen referens till objektet. ShowMenu behöver returnera ett objekt.
-            post.Category = (Category)selectedCategory;
+
+            post.PostCategory = database.Category
+                .Where(c => selectedCategories.Contains(c.Name))
+                .Select(c => new PostCategory { Post = post, Category = c })
+                .ToList();
+
             Console.WriteLine();
             post.Topic = ReadString("Enter a topic for your post");
             post.Content = ReadString("Write your post message");
@@ -352,7 +387,7 @@ namespace BulletinBoard
             loggedInUser = user;
             MainMenu();
         }
-         
+
         public bool UserExists(string userName)
         {
             string[] users = database.User.Select(u => u.Username).ToArray();
@@ -366,6 +401,84 @@ namespace BulletinBoard
             {
                 return false;
             }
+        }
+
+        static string[] ShowMultiMenu(string prompt, string[] options)
+        {
+            Console.WriteLine(prompt);
+
+            var selected = new List<int>();
+            int focused = 0;
+
+            // Hide the cursor that will blink after calling ReadKey.
+            Console.CursorVisible = false;
+
+            ConsoleKey? key = null;
+            while (key != ConsoleKey.Enter)
+            {
+                // If this is not the first iteration, move the cursor to the first line of the menu.
+                if (key != null)
+                {
+                    Console.CursorLeft = 0;
+                    Console.CursorTop = Console.CursorTop - options.Length;
+                }
+
+                // Print all the options, highlighting the focused one and the selected ones.
+                for (int i = 0; i < options.Length; i++)
+                {
+                    var option = options[i];
+                    if (i == focused)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    else if (selected.Contains(i))
+                    {
+                        Console.BackgroundColor = ConsoleColor.Green;
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+
+                    if (selected.Contains(i)) Console.Write("+");
+                    else Console.Write("-");
+                    Console.WriteLine(" " + option);
+
+                    Console.ResetColor();
+                }
+
+                // Read another key and adjust the selected value before looping to repeat all of this.
+                key = Console.ReadKey().Key;
+                if (key == ConsoleKey.DownArrow)
+                {
+                    focused = Math.Min(focused + 1, options.Length - 1);
+                }
+                else if (key == ConsoleKey.UpArrow)
+                {
+                    focused = Math.Max(focused - 1, 0);
+                }
+                else if (key == ConsoleKey.Spacebar)
+                {
+                    if (selected.Contains(focused))
+                    {
+                        selected.Remove(focused);
+                    }
+                    else
+                    {
+                        selected.Add(focused);
+                    }
+                }
+            }
+
+            // Reset the cursor and return the selected options.
+            Console.CursorVisible = true;
+
+            // For consistency and predictability, sort selected indexes so that returned strings are in order shown in menu.
+            selected.Sort();
+            var selectedStrings = new List<string>();
+            foreach (int i in selected)
+            {
+                selectedStrings.Add(options[i]);
+            }
+            return selectedStrings.ToArray();
         }
 
         static string ShowMenu(string prompt, string[] options)

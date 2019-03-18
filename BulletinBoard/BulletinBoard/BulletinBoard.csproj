@@ -130,6 +130,10 @@
     <Compile Include="Migrations\20190315121215_FirstMigration.designer.cs">
       <DependentUpon>20190315121215_FirstMigration.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20190318104101_Many2manySetup.cs" />
+    <Compile Include="Migrations\20190318104101_Many2manySetup.designer.cs">
+      <DependentUpon>20190318104101_Many2manySetup.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\AppDbContextModelSnapshot.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
