@@ -153,8 +153,11 @@ namespace BulletinBoard
                     string option = ShowMenu("What do you want to do?", new[] {
                         "Most Recent Posts",
                         "Most Popular Posts",
+                        "Show single Post",
+                        "Sort Posts by Date",
+                        "Sort Posts By Popularity",
                         "Posts by Category",
-                        "Search",
+                        "Search for text in all posts",
                         "Create a Post",
                         "Delete a Post",
                         "Quit"
@@ -163,7 +166,9 @@ namespace BulletinBoard
                     if (option == "Most Recent Posts") MostRecentPosts();
                     else if (option == "Most Popular Posts") MostPopularPosts();
                     else if (option == "Posts by Category") PostsByCategory();
-                    else if (option == "Search") Search();
+                    else if (option == "Sort Posts by Date") SortPostsByDate();
+                    else if (option == "Sort Posts By Popularity") SortPostsByPopularity();
+                    else if (option == "Search for text in all posts") SearchForText();
                     else if (option == "Create a Post") CreateAPost();
                     else if (option == "Delete a Post") DeleteAPost();
                     else Environment.Exit(0);
@@ -171,6 +176,34 @@ namespace BulletinBoard
                     Console.WriteLine();
                 }
             }
+        }
+
+        private static void SortPostsByPopularity()
+        {
+            WriteUnderlined("Posts sorted by popularity");
+            Console.WriteLine();
+            var posts = database.Post.OrderByDescending(p => p.Like);
+
+            foreach (Post post in posts)
+            {
+                Console.WriteLine($"- {post.Topic} ({post.Like} like(s))");
+            }
+            Console.ReadKey();
+            MainMenu();
+        }
+
+        private static void SortPostsByDate()
+        {
+            WriteUnderlined("Posts sorted by date");
+            Console.WriteLine();
+            var posts = database.Post.OrderByDescending(p => p.Date);
+
+            foreach (Post post in posts)
+            {
+                Console.WriteLine($"- {post.Topic} ({post.Date.Year}-{post.Date.Month}-{post.Date.Day})");
+            }
+            Console.ReadKey();
+            MainMenu();
         }
 
         private static void DeleteAPost()
@@ -267,9 +300,21 @@ namespace BulletinBoard
             Console.ReadKey();
         }
 
-        private static void Search()
+        private static void SearchForText()
         {
-            throw new NotImplementedException();
+            WriteUnderlined("Search for a text in all messages");
+            Console.WriteLine();
+            string userInput = ReadString("Enter a text to search for");
+
+            string[] posts = database.Post.Where(p => p.Content.Contains(userInput)).Select(p => $"{p.Topic} + {p.Content}").ToArray();
+
+            WriteUnderlined("The following posts contain the search string you entered:");
+            foreach (string post in posts)
+            {
+                Console.WriteLine(post);
+            }
+            Console.ReadKey();
+            MainMenu();
         }
 
         private static void CreateAPost()
